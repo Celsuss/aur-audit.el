@@ -45,6 +45,11 @@
   :type 'string
   :group 'aur-audit)
 
+(defcustom aur-audit-download-dir "~/tmp/"
+  "Directory to download files to."
+  :type 'string
+  :group 'aur-audit)
+
 ;; TODO Look for sudo
 (defcustom aur-audit-suspicious-patterns
   '("curl[^|]*|[^|]*sh"            ; piping a download straight into a shell
@@ -71,7 +76,7 @@ TODO: shell out to `pacman -Qm' and parse the output.
     list of lines).  It signals on non-zero exit, which is often what
     you want.
   - Each line is \"NAME VERSION\"; `split-string' will break it apart."
-  (error "aur-audit-installed-packages: not implemented yet"))
+  (process-lines "pacman" "-Qm"))
 
 ;;;; Fetching PKGBUILDs from the AUR
 
@@ -115,7 +120,11 @@ TODO:
 (defun aur-audit-open-buffer ()
   "Opens up a buffer for the audit"
   (let ((buf (get-buffer-create "aur-audit")))
-    (switch-to-buffer buf))))
+    (switch-to-buffer buf))
+  (insert "AUR Audit"))
+;;(setq buffer-read-only t))
+
+
 
 ;;;; User-facing command
 
@@ -130,7 +139,10 @@ and list the findings.  Once that works, graduate to a real UI:
   - a dedicated major mode deriving from `special-mode' (read-only,
     q-to-quit for free)."
   (interactive)
-  (aur-audit-open-buffer))
+  (aur-audit-open-buffer)
+  (let ((packages (aur-audit-installed-packages)))
+    (insert (string-join packages "\n"))
+    ))
 
 (provide 'aur-audit)
 ;;; aur-audit.el ends here
